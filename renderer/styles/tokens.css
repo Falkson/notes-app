@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Bakgrunder */
+  --color-bg-base:        #1a1c21;
+  --color-bg-surface:     #22252c;
+  --color-bg-elevated:    #2a2d35;
+  --color-bg-overlay:     #32363f;
+
+  /* Gränser */
+  --color-border:         #2e3239;
+  --color-border-focus:   #4a90d9;
+
+  /* Text */
+  --color-text-primary:   #f0f1f3;
+  --color-text-secondary: #9ba3af;
+  --color-text-muted:     #5c6370;
+  --color-text-disabled:  #3d4149;
+
+  /* Accent – Blå */
+  --color-accent-blue:        #6b9cf5;
+  --color-accent-blue-hover:  #88b1f8;
+  --color-accent-blue-subtle: #1a2640;
+
+  /* Accent – Amber */
+  --color-accent-amber:     #f5a623;
+  --color-accent-amber-bg:  #3a2f14;
+
+  /* Status */
+  --color-danger:  #e05252;
+  --color-warning: #f5a623;
+  --color-success: #4caf82;
+
+  /* Sidebar */
+  --color-nav-active-bg:   #2e3239;
+  --color-nav-active-text: #f0f1f3;
+  --color-nav-inactive:    #6b7280;
+
+  /* Typografi */
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Menlo', monospace;
+
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 15px;
+  --text-md:   17px;
+  --text-lg:   22px;
+  --text-xl:   32px;
+
+  --font-normal:   400;
+  --font-medium:   500;
+  --font-semibold: 600;
+  --font-bold:     700;
+
+  /* Spacing */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+
+  /* Border radius */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:   0 4px 12px rgba(0,0,0,0.4);
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.35);
+  --glow-blue:   0 0 0 3px rgba(107,156,245,0.18);
+
+  /* Transitions */
+  --transition-fast:   0.1s ease;
+  --transition-normal: 0.2s ease;
+
+  /* Layout */
+  --sidebar-width:   110px;
+  --content-padding: 32px;
+}

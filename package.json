@@ -1,0 +1,38 @@
+{
+    "name": "notes-app",
+    "version": "1.0.0",
+    "description": "Minimalistisk anteckningsapp",
+    "main": "main.js",
+    "scripts": {
+      "start": "electron .",
+      "build:mac": "electron-builder --mac",
+      "build:win": "electron-builder --win"
+    },
+    "build": {
+      "appId": "com.anteckningar.notes-app",
+      "productName": "Anteckningar",
+      "directories": {
+        "output": "dist"
+      },
+      "files": [
+        "main.js",
+        "preload.js",
+        "notesIcon.icns",
+        "notesIcon.png",
+        "renderer/**/*"
+      ],
+      "mac": {
+        "category": "public.app-category.productivity",
+        "icon": "notesIcon.icns",
+        "target": "dmg"
+      },
+      "win": {
+        "target": "nsis",
+        "icon": "notesIcon.png"
+      }
+    },
+    "devDependencies": {
+      "electron": "^29.0.0",
+      "electron-builder": "^24.0.0"
+    }
+  }

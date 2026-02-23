@@ -1,0 +1,72 @@
+@media print {
+    /* Dölj allt utom innehållet */
+    .sidebar,
+    .titlebar,
+    .col-list,
+    .editor-header,
+    .char-count,
+    .btn-primary,
+    .btn-ghost,
+    .btn-danger,
+    .btn-icon { display: none !important; }
+  
+    body, html, .app, .app-body, .main, .col-editor, .editor-body {
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      background: #fff !important;
+      color: #111 !important;
+      overflow: visible !important;
+    }
+  
+    .editor-body {
+      padding: 40px !important;
+    }
+  
+    .field-label {
+      font-size: 10px;
+      color: #888 !important;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+  
+    input[type="datetime-local"] {
+      background: none !important;
+      border: none !important;
+      color: #333 !important;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      padding: 0 !important;
+    }
+  
+    textarea.note-textarea {
+      background: none !important;
+      border: none !important;
+      color: #111 !important;
+      font-size: 15px;
+      line-height: 1.8;
+      padding: 0 !important;
+      min-height: unset !important;
+      resize: none;
+    }
+  
+    .print-header {
+      display: block !important;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+  
+    .print-header h1 {
+      font-size: 11px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+  
+  /* Dölj print-header normalt */
+  .print-header { display: none; }
