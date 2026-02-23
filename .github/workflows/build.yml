@@ -1,0 +1,35 @@
+name: Bygg Mac och Windows
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Anteckningar-Mac
+          path: dist/*.dmg
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Anteckningar-Windows
+          path: dist/*.exe
