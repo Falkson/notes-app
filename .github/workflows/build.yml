@@ -2,7 +2,8 @@ name: Bygg Mac och Windows
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - 'v*'
 
 jobs:
 
@@ -14,7 +15,9 @@ jobs:
         with:
           node-version: 20
       - run: npm install
-      - run: npx electron-builder --mac --publish never
+      - run: npx electron-builder --mac --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
       - uses: actions/upload-artifact@v4
         with:
           name: Anteckningar-Mac
@@ -28,7 +31,9 @@ jobs:
         with:
           node-version: 20
       - run: npm install
-      - run: npx electron-builder --win --publish never
+      - run: npx electron-builder --win --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
       - uses: actions/upload-artifact@v4
         with:
           name: Anteckningar-Windows
