@@ -1,38 +1,46 @@
 {
-    "name": "notes-app",
-    "version": "1.0.0",
-    "description": "Minimalistisk anteckningsapp",
-    "main": "main.js",
-    "scripts": {
-      "start": "electron .",
-      "build:mac": "electron-builder --mac",
-      "build:win": "electron-builder --win"
+  "name": "notes-app",
+  "version": "1.0.0",
+  "description": "Minimalistisk anteckningsapp",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.anteckningar.notes-app",
+    "productName": "Anteckningar",
+    "directories": {
+      "output": "dist"
     },
-    "build": {
-      "appId": "com.anteckningar.notes-app",
-      "productName": "Anteckningar",
-      "directories": {
-        "output": "dist"
-      },
-      "files": [
-        "main.js",
-        "preload.js",
-        "notesIcon.icns",
-        "notesIcon.png",
-        "renderer/**/*"
-      ],
-      "mac": {
-        "category": "public.app-category.productivity",
-        "icon": "notesIcon.icns",
-        "target": "dmg"
-      },
-      "win": {
-        "target": "nsis",
-        "icon": "notesIcon.png"
-      }
+    "publish": {
+      "provider": "github",
+      "owner": "Falkson",
+      "repo": "notes-app"
     },
-    "devDependencies": {
-      "electron": "^29.0.0",
-      "electron-builder": "^24.0.0"
+    "files": [
+      "main.js",
+      "preload.js",
+      "notesIcon.icns",
+      "notesIcon.png",
+      "renderer/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "notesIcon.icns",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "notesIcon.png"
     }
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
   }
+}

@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs   = require('fs');
 
@@ -9,6 +10,38 @@ if (!fs.existsSync(NOTES_DIR)) {
 
 let mainWindow   = null;
 let splashWindow = null;
+
+// ── Auto-updater konfiguration ─────────────────────────────────
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-available', () => {
+    mainWindow?.webContents.send('update-status', 'Ny version hittad – laddar ner...');
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Uppdatering klar',
+      message: 'En ny version har laddats ner. Vill du installera den nu?',
+      buttons: ['Installera nu', 'Senare']
+    }).then(result => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.log('Auto-updater fel:', err.message);
+  });
+
+  // Kolla efter uppdateringar 3 sekunder efter start
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(() => {});
+  }, 3000);
+}
 
 // ── Splash screen ──────────────────────────────────────────────
 function createSplash() {
@@ -57,6 +90,11 @@ function createMain() {
       }
       mainWindow.show();
       mainWindow.focus();
+
+      // Starta auto-updater efter att fönstret visas
+      if (app.isPackaged) {
+        setupAutoUpdater();
+      }
     }, 4000);
   });
 }
