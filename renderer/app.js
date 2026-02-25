@@ -10,26 +10,20 @@ const notesListEl  = document.getElementById('notesList');
 const editorEmpty  = document.getElementById('editorEmpty');
 const editorActive = document.getElementById('editorActive');
 const noteDateEl   = document.getElementById('noteDate');
+const noteTitleEl  = document.getElementById('noteTitle');
 const noteBodyEl   = document.getElementById('noteBody');
 const charCountEl  = document.getElementById('charCount');
 const toastEl      = document.getElementById('toast');
 
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
-  if (!window.notes) {
-    console.error('window.notes är inte definierat');
-    return;
-  }
+  if (!window.notes) { console.error('window.notes saknas'); return; }
   await loadNotes();
-
   document.addEventListener('keydown', e => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-      e.preventDefault();
-      saveNote();
-    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); saveNote(); }
   });
-
-  noteBodyEl.addEventListener('input', () => { isDirty = true; });
+  noteBodyEl.addEventListener('input',  () => { isDirty = true; });
+  noteTitleEl.addEventListener('input', () => { isDirty = true; });
   noteDateEl.addEventListener('change', () => { isDirty = true; });
 }
 
@@ -49,18 +43,17 @@ function renderList() {
       </div>`;
     return;
   }
-
   notesListEl.innerHTML = notesList_data.map((note, i) => {
     const isActive = note.id === activeId;
     const dateStr  = formatDate(note.dateTime);
     const preview  = note.body.trim().replace(/\s+/g, ' ').slice(0, 80) || 'Tom anteckning';
+    const titleHtml = note.title
+      ? `<div class="note-card-title">${escapeHtml(note.title)}</div>`
+      : '';
     return `
-      <div
-        class="note-card ${isActive ? 'active' : ''}"
-        style="animation-delay:${i * 40}ms"
-        onclick="selectNote('${note.id}')"
-      >
+      <div class="note-card ${isActive ? 'active' : ''}" style="animation-delay:${i * 40}ms" onclick="selectNote('${note.id}')">
         <div class="note-card-date">${dateStr}</div>
+        ${titleHtml}
         <div class="note-card-preview">${escapeHtml(preview)}</div>
       </div>`;
   }).join('');
@@ -69,19 +62,15 @@ function renderList() {
 // ── Välj anteckning ───────────────────────────────────────────
 async function selectNote(id) {
   if (isDirty && activeId) {
-    const confirmed = confirm('Du har osparade ändringar. Vill du fortsätta utan att spara?');
-    if (!confirmed) return;
+    if (!confirm('Du har osparade ändringar. Fortsätta utan att spara?')) return;
   }
-
   const note = notesList_data.find(n => n.id === id);
   if (!note) return;
-
-  activeId = id;
-  isDirty  = false;
-
+  activeId = id; isDirty = false;
   showEditor();
-  noteDateEl.value = toDatetimeLocal(note.dateTime);
-  noteBodyEl.value = note.body;
+  noteDateEl.value  = toDatetimeLocal(note.dateTime);
+  noteTitleEl.value = note.title || '';
+  noteBodyEl.value  = note.body;
   updateCharCount();
   renderList();
 }
@@ -89,42 +78,30 @@ async function selectNote(id) {
 // ── Ny anteckning ─────────────────────────────────────────────
 function newNote() {
   if (isDirty && activeId) {
-    const confirmed = confirm('Du har osparade ändringar. Fortsätta utan att spara?');
-    if (!confirmed) return;
+    if (!confirm('Du har osparade ändringar. Fortsätta utan att spara?')) return;
   }
-
-  activeId = null;
-  isDirty  = false;
-
+  activeId = null; isDirty = false;
   showEditor();
-  noteDateEl.value = nowDatetimeLocal();
-  noteBodyEl.value = '';
+  noteDateEl.value  = nowDatetimeLocal();
+  noteTitleEl.value = '';
+  noteBodyEl.value  = '';
   updateCharCount();
-  noteBodyEl.focus();
+  noteTitleEl.focus();
   renderList();
 }
 
 // ── Spara anteckning ──────────────────────────────────────────
 async function saveNote() {
   const dateTime = noteDateEl.value;
+  const title    = noteTitleEl.value.trim();
   const body     = noteBodyEl.value;
-
   if (!dateTime) { showToast('Välj datum och tid.', 'error'); return; }
   if (!body.trim()) { showToast('Anteckningen är tom.', 'error'); return; }
-
   try {
-    const filename = await window.notes.save({
-      id: activeId || null,
-      dateTime,
-      body
-    });
-
-    activeId = filename;
-    isDirty  = false;
-
+    const filename = await window.notes.save({ id: activeId || null, dateTime, title, body });
+    activeId = filename; isDirty = false;
     await loadNotes();
     showToast('Sparad!', 'success');
-    renderList();
   } catch (err) {
     showToast('Kunde inte spara.', 'error');
     console.error(err);
@@ -134,59 +111,36 @@ async function saveNote() {
 // ── Ta bort anteckning ────────────────────────────────────────
 async function deleteNote() {
   if (!activeId) return;
-  const confirmed = confirm('Ta bort denna anteckning? Det går inte att ångra.');
-  if (!confirmed) return;
-
+  if (!confirm('Ta bort denna anteckning? Det går inte att ångra.')) return;
   try {
     await window.notes.delete(activeId);
-    activeId = null;
-    isDirty  = false;
-    await loadNotes();
-    hideEditor();
+    activeId = null; isDirty = false;
+    await loadNotes(); hideEditor();
     showToast('Anteckning borttagen.', '');
-  } catch (err) {
-    showToast('Kunde inte ta bort.', 'error');
-    console.error(err);
-  }
+  } catch (err) { showToast('Kunde inte ta bort.', 'error'); }
 }
 
 // ── PDF Export ────────────────────────────────────────────────
 async function exportPDF() {
-  if (!noteBodyEl.value.trim()) {
-    showToast('Inget innehåll att exportera.', 'error');
-    return;
-  }
+  if (!noteBodyEl.value.trim()) { showToast('Inget innehåll att exportera.', 'error'); return; }
   if (isDirty) await saveNote();
-
   showToast('Exporterar PDF…', '');
-
   const result = await window.notes.exportPDF({
     dateTime: noteDateEl.value,
+    title: noteTitleEl.value,
     body: noteBodyEl.value
   });
-
-  if (result.success) {
-    showToast('PDF sparad!', 'success');
-  } else if (result.reason !== 'canceled') {
-    showToast('Kunde inte exportera PDF.', 'error');
-  }
+  if (result.success) showToast('PDF sparad!', 'success');
+  else if (result.reason !== 'canceled') showToast('Kunde inte exportera PDF.', 'error');
 }
 
 // ── Visa/dölj editor ──────────────────────────────────────────
-function showEditor() {
-  editorEmpty.style.display  = 'none';
-  editorActive.style.display = 'flex';
-}
-
-function hideEditor() {
-  editorEmpty.style.display  = 'flex';
-  editorActive.style.display = 'none';
-}
+function showEditor() { editorEmpty.style.display = 'none'; editorActive.style.display = 'flex'; }
+function hideEditor()  { editorEmpty.style.display = 'flex'; editorActive.style.display = 'none'; }
 
 // ── Teckenräknare ─────────────────────────────────────────────
 function updateCharCount() {
-  const len = noteBodyEl.value.length;
-  charCountEl.textContent = `${len.toLocaleString('sv-SE')} tecken`;
+  charCountEl.textContent = `${noteBodyEl.value.length.toLocaleString('sv-SE')} tecken`;
 }
 
 // ── View switcher ─────────────────────────────────────────────
@@ -210,36 +164,19 @@ function showToast(msg, type) {
 function formatDate(dateStr) {
   if (!dateStr) return '—';
   try {
-    const d = new Date(dateStr);
-    return d.toLocaleString('sv-SE', {
-      year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit'
+    return new Date(dateStr).toLocaleString('sv-SE', {
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
   } catch { return dateStr; }
 }
-
-function nowDatetimeLocal() {
-  const now = new Date();
-  now.setSeconds(0, 0);
-  return now.toISOString().slice(0, 16);
+function nowDatetimeLocal() { const n = new Date(); n.setSeconds(0,0); return n.toISOString().slice(0,16); }
+function toDatetimeLocal(d) {
+  if (!d) return nowDatetimeLocal();
+  try { const dt = new Date(d); dt.setSeconds(0,0); return dt.toISOString().slice(0,16); }
+  catch { return nowDatetimeLocal(); }
 }
-
-function toDatetimeLocal(dateStr) {
-  if (!dateStr) return nowDatetimeLocal();
-  try {
-    const d = new Date(dateStr);
-    d.setSeconds(0, 0);
-    return d.toISOString().slice(0, 16);
-  } catch { return nowDatetimeLocal(); }
-}
-
 function escapeHtml(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Starta ────────────────────────────────────────────────────
 init();
