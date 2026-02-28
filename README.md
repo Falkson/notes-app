@@ -109,6 +109,9 @@ Note: macOS automatic updates require an Apple Developer certificate at $99 per 
 
 ## Changelog
 
+v1.1.4
+- Updated the files in the rendered map (made a mistake to upload the new files to the root folder)
+
 v1.1.3
 - Pin notes to the top of the list
 - Custom styled modal dialogs, replaced native OS popups
