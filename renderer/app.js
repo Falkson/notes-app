@@ -4,6 +4,7 @@
 let notesList_data = [];
 let activeId       = null;
 let isDirty        = false;
+let pinnedIds      = new Set(JSON.parse(localStorage.getItem('pinnedNotes') || '[]'));
 
 // ── DOM refs ──────────────────────────────────────────────────
 const notesListEl  = document.getElementById('notesList');
@@ -27,6 +28,41 @@ async function init() {
   noteDateEl.addEventListener('change', () => { isDirty = true; });
 }
 
+// ── Custom Modal ──────────────────────────────────────────────
+function showModal({ title, message, confirmText, cancelText = 'Avbryt', onConfirm }) {
+  const backdrop  = document.getElementById('modalBackdrop');
+  const titleEl   = document.getElementById('modalTitle');
+  const messageEl = document.getElementById('modalMessage');
+  const confirmEl = document.getElementById('modalConfirm');
+  const cancelEl  = document.getElementById('modalCancel');
+
+  titleEl.textContent   = title;
+  messageEl.textContent = message;
+  confirmEl.textContent = confirmText;
+  cancelEl.textContent  = cancelText;
+
+  backdrop.classList.add('show');
+
+  const close = () => backdrop.classList.remove('show');
+  confirmEl.onclick = () => { close(); onConfirm(); };
+  cancelEl.onclick  = () => close();
+  backdrop.onclick  = (e) => { if (e.target === backdrop) close(); };
+}
+
+// ── Pin-hantering ─────────────────────────────────────────────
+function togglePin(event, id) {
+  event.stopPropagation();
+  if (pinnedIds.has(id)) {
+    pinnedIds.delete(id);
+    showToast('Anteckning lossad.', '');
+  } else {
+    pinnedIds.add(id);
+    showToast('Anteckning nålad!', 'success');
+  }
+  localStorage.setItem('pinnedNotes', JSON.stringify([...pinnedIds]));
+  renderList();
+}
+
 // ── Ladda anteckningar ────────────────────────────────────────
 async function loadNotes() {
   notesList_data = await window.notes.list();
@@ -43,16 +79,31 @@ function renderList() {
       </div>`;
     return;
   }
-  notesListEl.innerHTML = notesList_data.map((note, i) => {
+
+  const pinned   = notesList_data.filter(n => pinnedIds.has(n.id));
+  const unpinned = notesList_data.filter(n => !pinnedIds.has(n.id));
+  const sorted   = [...pinned, ...unpinned];
+
+  notesListEl.innerHTML = sorted.map((note, i) => {
     const isActive = note.id === activeId;
+    const isPinned = pinnedIds.has(note.id);
     const dateStr  = formatDate(note.dateTime);
     const preview  = note.body.trim().replace(/\s+/g, ' ').slice(0, 80) || 'Tom anteckning';
     const titleHtml = note.title
       ? `<div class="note-card-title">${escapeHtml(note.title)}</div>`
       : '';
+    const pinHtml = `
+      <button class="note-pin-btn ${isPinned ? 'pinned' : ''}" onclick="togglePin(event, '${note.id}')" title="${isPinned ? 'Lossa anteckning' : 'Nåla fast anteckning'}">
+        <svg viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="17" x2="12" y2="22"/>
+          <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+        </svg>
+      </button>`;
+
     return `
-      <div class="note-card ${isActive ? 'active' : ''}" style="animation-delay:${i * 40}ms" onclick="selectNote('${note.id}')">
-        <div class="note-card-date">${dateStr}</div>
+      <div class="note-card ${isActive ? 'active' : ''} ${isPinned ? 'is-pinned' : ''}" style="animation-delay:${i * 40}ms" onclick="selectNote('${note.id}')">
+        ${pinHtml}
+        <div class="note-card-date">${isPinned ? '📌 ' : ''}${dateStr}</div>
         ${titleHtml}
         <div class="note-card-preview">${escapeHtml(preview)}</div>
       </div>`;
@@ -62,8 +113,18 @@ function renderList() {
 // ── Välj anteckning ───────────────────────────────────────────
 async function selectNote(id) {
   if (isDirty && activeId) {
-    if (!confirm('Du har osparade ändringar. Fortsätta utan att spara?')) return;
+    showModal({
+      title: 'Osparade ändringar',
+      message: 'Du har osparade ändringar. Vill du fortsätta utan att spara?',
+      confirmText: 'Fortsätt utan att spara',
+      onConfirm: () => _loadNote(id)
+    });
+    return;
   }
+  _loadNote(id);
+}
+
+function _loadNote(id) {
   const note = notesList_data.find(n => n.id === id);
   if (!note) return;
   activeId = id; isDirty = false;
@@ -78,8 +139,18 @@ async function selectNote(id) {
 // ── Ny anteckning ─────────────────────────────────────────────
 function newNote() {
   if (isDirty && activeId) {
-    if (!confirm('Du har osparade ändringar. Fortsätta utan att spara?')) return;
+    showModal({
+      title: 'Osparade ändringar',
+      message: 'Du har osparade ändringar. Vill du fortsätta utan att spara?',
+      confirmText: 'Fortsätt utan att spara',
+      onConfirm: () => _createNewNote()
+    });
+    return;
   }
+  _createNewNote();
+}
+
+function _createNewNote() {
   activeId = null; isDirty = false;
   showEditor();
   noteDateEl.value  = nowDatetimeLocal();
@@ -109,15 +180,23 @@ async function saveNote() {
 }
 
 // ── Ta bort anteckning ────────────────────────────────────────
-async function deleteNote() {
+function deleteNote() {
   if (!activeId) return;
-  if (!confirm('Ta bort denna anteckning? Det går inte att ångra.')) return;
-  try {
-    await window.notes.delete(activeId);
-    activeId = null; isDirty = false;
-    await loadNotes(); hideEditor();
-    showToast('Anteckning borttagen.', '');
-  } catch (err) { showToast('Kunde inte ta bort.', 'error'); }
+  showModal({
+    title: 'Ta bort anteckning',
+    message: 'Är du säker? Det går inte att ångra.',
+    confirmText: 'Ta bort',
+    onConfirm: async () => {
+      try {
+        await window.notes.delete(activeId);
+        pinnedIds.delete(activeId);
+        localStorage.setItem('pinnedNotes', JSON.stringify([...pinnedIds]));
+        activeId = null; isDirty = false;
+        await loadNotes(); hideEditor();
+        showToast('Anteckning borttagen.', '');
+      } catch (err) { showToast('Kunde inte ta bort.', 'error'); }
+    }
+  });
 }
 
 // ── PDF Export ────────────────────────────────────────────────
