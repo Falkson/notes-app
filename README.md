@@ -109,6 +109,15 @@ Note: macOS automatic updates require an Apple Developer certificate at $99 per 
 
 ## Changelog
 
+v1.1.6
+- Fixed sidebar logo not displaying on Windows
+- Logo now loaded dynamically via IPC for cross-platform compatibility
+- Updated preload.js and main.js to support logo path resolution
+
+v1.1.5
+- Fixed renderer files incorrectly placed in root instead of renderer folder
+- Rebuilt with correct file structure so all UI updates from v1.1.3 are now active on Windows
+
 v1.1.4
 - Updated the files in the rendered map (made a mistake to upload the new files to the root folder)
 
