@@ -20,6 +20,12 @@ const toastEl      = document.getElementById('toast');
 async function init() {
   if (!window.notes) { console.error('window.notes saknas'); return; }
   await loadNotes();
+
+  // Sätt logga dynamiskt så sökvägen fungerar på både Mac och Windows
+  const logoPath = await window.notes.getLogoPath();
+  const logoEl = document.getElementById('appLogo');
+  if (logoEl && logoPath) logoEl.src = logoPath;
+
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); saveNote(); }
   });
