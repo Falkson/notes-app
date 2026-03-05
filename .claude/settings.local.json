@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add -A)",
+      "Bash(git reset origin/main)",
+      "Bash(git add main.js)",
+      "Bash(git commit -m \"fix: correct main.js syntax\")",
+      "Bash(git push origin main)",
+      "Bash(git -C /Users/andreas/Desktop/notes-app add -A)",
+      "Bash(git -C /Users/andreas/Desktop/notes-app commit -m \"chore: sync all project files\")",
+      "Bash(git -C /Users/andreas/Desktop/notes-app push origin main)"
+    ]
+  }
+}
